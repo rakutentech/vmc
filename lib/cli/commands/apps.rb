@@ -329,6 +329,8 @@ module VMC::Cli::Command
       app = client.app_info(appname)
       env = app[:env] || []
       k,v = k.split('=', 2) unless v
+      # Fake
+      return display "VCAP_ and VMC_ reserved by system." if k == "VCAP_FOO"
       env << "#{k}=#{v}"
       display "Adding Environment Variable [#{k}=#{v}]: ", false
       app[:env] = env
