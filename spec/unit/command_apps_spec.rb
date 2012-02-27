@@ -112,7 +112,13 @@ describe 'VMC::Cli::Command::Apps' do
       @command.client(client)
     end
 
-    it "environments whose prefixes are VMC_ and VCAP_ should not be added." do
+    it "environments whose prefixes are VMC_ should not be added." do
+      @command.should_receive(:display).with("VCAP_ and VMC_ reserved by system.")
+      a_request(:put, "#{@local_target}/#{VMC::APPS_PATH}/foo").should_not have_been_made
+
+      @command.environment_add('foo', 'VMC_FOO=BAR')
+    end
+    it "environments whose prefixes are VCAP_ should not be added." do
       @command.should_receive(:display).with("VCAP_ and VMC_ reserved by system.")
       a_request(:put, "#{@local_target}/#{VMC::APPS_PATH}/foo").should_not have_been_made
 
