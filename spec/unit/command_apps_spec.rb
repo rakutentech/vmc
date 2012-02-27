@@ -88,4 +88,36 @@ describe 'VMC::Cli::Command::Apps' do
     expect { command.update('foo')}.to raise_error(/Can't deploy application containing links/)
   end
 
+  describe "env commands" do
+    before do
+      client = VMC::Client.new(@local_target, @auth_token)
+
+      login_path = "#{@local_target}/users/#{@user}/tokens"
+      stub_request(:post, login_path).to_return(File.new(spec_asset('login_success.txt')))
+      info_path = "#{@local_target}/#{VMC::INFO_PATH}"
+      stub_request(:get, info_path).to_return(File.new(spec_asset('info_authenticated.txt')))
+
+      app = spec_asset('tests/node/app_with_external_link')
+      options = {
+          :name => 'foo',
+          :uris => ['foo.vcap.me'],
+          :instances => 1,
+          :staging => { :model => 'nodejs/1.0' },
+          :path => app,
+          :resources => { :memory => 64 }
+      }
+      app_path = "#{@local_target}/#{VMC::APPS_PATH}/foo"
+      stub_request(:get, app_path).to_return(File.new(spec_asset('app_info.txt')))
+      @command = VMC::Cli::Command::Apps.new(options)
+      @command.client(client)
+    end
+
+    it "environments whose prefixes are VMC_ and VCAP_ should not be added." do
+      @command.should_receive(:display).with("VCAP_ and VMC_ reserved by system.")
+      a_request(:put, "#{@local_target}/#{VMC::APPS_PATH}/foo").should_not have_been_made
+
+      @command.environment_add('foo', 'VCAP_FOO=BAR')
+    end
+  end
+
 end
