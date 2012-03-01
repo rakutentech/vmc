@@ -1,11 +1,11 @@
 require 'rake'
-require 'spec/rake/spectask'
+require 'rspec/core/rake_task'
 
 desc "Run specs"
 task :spec => :build do
-  Spec::Rake::SpecTask.new('spec') do |t|
-    t.spec_opts = %w(-fs -c)
-    t.spec_files = FileList['spec/**/*_spec.rb']
+  RSpec::Core::RakeTask.new do |t|
+    t.rspec_opts = %w(-fd -c)
+    t.pattern = 'spec/**/*_spec.rb'
   end
 end
 

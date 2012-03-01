@@ -5,7 +5,7 @@ require 'bundler/setup'
 require 'vmc'
 require 'cli'
 
-require 'spec'
+require 'rspec'
 require 'webmock/rspec'
 
 def spec_asset(filename)
