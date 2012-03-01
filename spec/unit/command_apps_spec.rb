@@ -112,17 +112,28 @@ describe 'VMC::Cli::Command::Apps' do
       @command.client(client)
     end
 
-    it "environments whose prefixes are VMC_ should not be added." do
-      @command.should_receive(:display).with("VCAP_ and VMC_ reserved by system.")
-      a_request(:put, "#{@local_target}/#{VMC::APPS_PATH}/foo").should_not have_been_made
+    context "when specified system-reserved key" do
+      it "environments whose prefixes are VMC_ should not be added." do
+        @command.should_receive(:display).with("VCAP_ and VMC_ reserved by system.")
+        a_request(:put, "#{@local_target}/#{VMC::APPS_PATH}/foo").should_not have_been_made
 
-      @command.environment_add('foo', 'VMC_FOO=BAR')
+        @command.environment_add('foo', 'VMC_FOO=BAR')
+      end
+      it "environments whose prefixes are VCAP_ should not be added." do
+        @command.should_receive(:display).with("VCAP_ and VMC_ reserved by system.")
+        a_request(:put, "#{@local_target}/#{VMC::APPS_PATH}/foo").should_not have_been_made
+
+        @command.environment_add('foo', 'VCAP_FOO=BAR')
+      end
     end
-    it "environments whose prefixes are VCAP_ should not be added." do
-      @command.should_receive(:display).with("VCAP_ and VMC_ reserved by system.")
-      a_request(:put, "#{@local_target}/#{VMC::APPS_PATH}/foo").should_not have_been_made
+    context "when specified invalid key" do
+      it "keys started with ' should not be added." do
+        invalid_key = ""
+        @command.should_receive(:display).with("#{invalid_key} is invalid key.")
+        a_request(:put, "#{@local_target}/#{VMC::APPS_PATH}/foo").should_not have_been_made
 
-      @command.environment_add('foo', 'VCAP_FOO=BAR')
+        @command.environment_add('foo', invalid_key, 'bar')
+      end
     end
   end
 
