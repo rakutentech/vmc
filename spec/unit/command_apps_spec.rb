@@ -112,28 +112,31 @@ describe 'VMC::Cli::Command::Apps' do
       @command.client(client)
     end
 
-    context "when specified system-reserved key" do
-      it "environments whose prefixes are VMC_ should not be added." do
-        @command.should_receive(:display).with("VCAP_ and VMC_ reserved by system.")
+    shared_examples "specified invalid key" do
+      it "should be displayed error message without accessing App API." do
+        @command.should_receive(:display).with(error_message)
         a_request(:put, "#{@local_target}/#{VMC::APPS_PATH}/foo").should_not have_been_made
 
-        @command.environment_add('foo', 'VMC_FOO=BAR')
+        @command.environment_add('foo', invalid_key, 'BAR')
       end
-      it "environments whose prefixes are VCAP_ should not be added." do
-        @command.should_receive(:display).with("VCAP_ and VMC_ reserved by system.")
-        a_request(:put, "#{@local_target}/#{VMC::APPS_PATH}/foo").should_not have_been_made
+    end
 
-        @command.environment_add('foo', 'VCAP_FOO=BAR')
+    context "when specified system-reserved key" do
+      let(:error_message) { "VCAP_ and VMC_ reserved by system." }
+
+      context "the prefix is VMC_" do
+        let(:invalid_key) { "VMC_HOGE" }
+        it_behaves_like "specified invalid key"
+      end
+      context "the prefix is VCAP_" do
+        let(:invalid_key) { "VCAP_HOGE" }
+        it_behaves_like "specified invalid key"
       end
     end
     context "when specified invalid key" do
-      it "keys started with ' should not be added." do
-        invalid_key = ""
-        @command.should_receive(:display).with("#{invalid_key} is invalid key.")
-        a_request(:put, "#{@local_target}/#{VMC::APPS_PATH}/foo").should_not have_been_made
-
-        @command.environment_add('foo', invalid_key, 'bar')
-      end
+      let(:invalid_key) { "USING.PERIOD" }
+      let(:error_message) {"#{invalid_key} is invalid key. You can use alphabets and numbers and underscore(_)."}
+      it_behaves_like "specified invalid key"
     end
   end
 

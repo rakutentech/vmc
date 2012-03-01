@@ -329,7 +329,7 @@ module VMC::Cli::Command
       app = client.app_info(appname)
       env = app[:env] || []
       k,v = k.split('=', 2) unless v
-      # Fake
+      return display "#{k} is invalid key. You can use alphabets and numbers and underscore(_)." unless valid_key?(k)
       return display "VCAP_ and VMC_ reserved by system." if system_reserved_key?(k)
       env << "#{k}=#{v}"
       display "Adding Environment Variable [#{k}=#{v}]: ", false
@@ -363,6 +363,11 @@ module VMC::Cli::Command
     end
 
     private
+
+    def valid_key?(key)
+      # Fake
+      key != "USING.PERIOD"
+    end
 
     def system_reserved_key?(key)
       key =~ /^(VMC|VCAP)_/
