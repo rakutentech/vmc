@@ -365,8 +365,7 @@ module VMC::Cli::Command
     private
 
     def valid_key?(key)
-      # Fake
-      key != "USING.PERIOD"
+      key =~ /^[\w_]+$/
     end
 
     def system_reserved_key?(key)

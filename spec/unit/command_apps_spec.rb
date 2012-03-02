@@ -98,7 +98,7 @@ describe 'VMC::Cli::Command::Apps' do
       stub_request(:get, info_path).to_return(File.new(spec_asset('info_authenticated.txt')))
 
       app = spec_asset('tests/node/app_with_external_link')
-      options = {
+      @options = {
           :name => 'foo',
           :uris => ['foo.vcap.me'],
           :instances => 1,
@@ -106,10 +106,28 @@ describe 'VMC::Cli::Command::Apps' do
           :path => app,
           :resources => { :memory => 64 }
       }
-      app_path = "#{@local_target}/#{VMC::APPS_PATH}/foo"
-      stub_request(:get, app_path).to_return(File.new(spec_asset('app_info.txt')))
-      @command = VMC::Cli::Command::Apps.new(options)
+      @app_path = "#{@local_target}/#{VMC::APPS_PATH}/foo"
+      stub_request(:get, @app_path).to_return(File.new(spec_asset('app_info.txt')))
+      stub_request(:put, @app_path)
+      @command = VMC::Cli::Command::Apps.new(@options)
       @command.client(client)
+    end
+
+    context "when specified a valid key" do
+      let(:valid_key) { "VALID_KEY55" }
+      it "the environment variable should be set." do
+        @command.should_receive(:display).with("Adding Environment Variable [#{valid_key}=BAR]: ", false).once
+        @command.should_receive(:display).with('OK').once
+
+        @command.environment_add('foo', valid_key, 'BAR')
+      end
+      it "the environment variable should be set." do
+        a_request(:put, @app_path).
+          with(:body => @options.merge(:env => ["#{valid_key}=BAR"]).to_json).
+          should have_been_made.once
+
+        @command.environment_add('foo', valid_key, 'BAR')
+      end
     end
 
     shared_examples "specified invalid key" do

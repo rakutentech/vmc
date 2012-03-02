@@ -4,7 +4,7 @@ require 'rspec/core/rake_task'
 desc "Run specs"
 task :spec => :build do
   RSpec::Core::RakeTask.new do |t|
-    t.rspec_opts = %w(-fd -c)
+    t.rspec_opts = %w(-fd -c -b)
     t.pattern = 'spec/**/*_spec.rb'
   end
 end
