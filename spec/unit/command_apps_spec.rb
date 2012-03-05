@@ -113,26 +113,24 @@ describe 'VMC::Cli::Command::Apps' do
     end
 
     context "when specified a valid key" do
+      before do 
+        @command.stub!(:restart).with(any_args())
+      end
       let(:valid_key) { "VALID_KEY55" }
-      it "should call client#update_app method" do
-        @command.client.should_receive(:update_app).once
+      it "the environment variable should be set." do
         @command.environment_add('foo', valid_key, 'BAR')
-      end 
-      pending do
-        it "the environment variable should be set." do
-          a_request(:put, @app_path).should have_been_made.once
 
-          @command.environment_add('foo', valid_key, 'BAR')
-        end
+        a_request(:put, "#{@local_target}/#{VMC::APPS_PATH}/foo").
+          with {|req| JSON.parse(req.body)['env'] == ["#{valid_key}=BAR"]}.
+          should have_been_made.once
       end
     end
 
     shared_examples "specified invalid key" do
       it "should be displayed error message without accessing App API." do
         @command.should_receive(:display).with(error_message)
-        a_request(:put, "#{@local_target}/#{VMC::APPS_PATH}/foo").should_not have_been_made
-
         @command.environment_add('foo', invalid_key, 'BAR')
+        a_request(:put, "#{@local_target}/#{VMC::APPS_PATH}/foo").should_not have_been_made
       end
     end
 
